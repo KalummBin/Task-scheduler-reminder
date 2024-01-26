@@ -1,0 +1,110 @@
+#include <iostream>
+#include <vector>
+#include <ctime>
+#include <algorithm>
+
+using namespace std;
+
+struct Task {
+    string description;
+    time_t scheduledTime;
+};
+
+// Function prototypes
+void addTask(vector<Task>& tasks);
+void displayTasks(const vector<Task>& tasks);
+void checkForReminders(vector<Task>& tasks);
+
+int main() {
+    vector<Task> tasks;
+
+    int choice;
+    do {
+        cout << "\nTask Scheduler Menu:\n";
+        cout << "1. Add Task\n";
+        cout << "2. Display Tasks\n";
+        cout << "3. Check for Reminders\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                addTask(tasks);
+                break;
+            case 2:
+                displayTasks(tasks);
+                break;
+            case 3:
+                checkForReminders(tasks);
+                break;
+            case 4:
+                cout << "Exiting program...\n";
+                break;
+            default:
+                cout << "Invalid choice!\n";
+        }
+    } while (choice != 4);
+
+    return 0;
+}
+
+void addTask(vector<Task>& tasks) {
+    Task newTask;
+
+    cout << "Enter task description: ";
+    cin.ignore(); // Clear input buffer
+    getline(cin, newTask.description);
+
+    time_t currentTime = time(0);
+    struct tm* timeInfo = localtime(&currentTime);
+
+    int year, month, day, hour, minute;
+    cout << "Enter year (YYYY): ";
+    cin >> year;
+    cout << "Enter month (MM): ";
+    cin >> month;
+    cout << "Enter day (DD): ";
+    cin >> day;
+    cout << "Enter hour (24-hour format): ";
+    cin >> hour;
+    cout << "Enter minute: ";
+    cin >> minute;
+
+    timeInfo->tm_year = year - 1900;
+    timeInfo->tm_mon = month - 1;
+    timeInfo->tm_mday = day;
+    timeInfo->tm_hour = hour;
+    timeInfo->tm_min = minute;
+    timeInfo->tm_sec = 0;
+
+    newTask.scheduledTime = mktime(timeInfo);
+
+    tasks.push_back(newTask);
+    cout << "Task added successfully!\n";
+}
+
+void displayTasks(const vector<Task>& tasks) {
+    if (tasks.empty()) {
+        cout << "No tasks to display.\n";
+        return;
+    }
+
+    cout << "\nScheduled Tasks:\n";
+    for (const Task& task : tasks) {
+        cout << "Description: " << task.description << endl;
+        cout << "Scheduled Time: " << ctime(&task.scheduledTime);
+    }
+}
+
+void checkForReminders(vector<Task>& tasks) {
+    time_t currentTime = time(0);
+    for (auto it = tasks.begin(); it != tasks.end(); ) {
+        if (it->scheduledTime <= currentTime) {
+            cout << "\nReminder: " << it->description << endl;
+            it = tasks.erase(it); // Remove task after reminder
+        } else {
+            ++it;
+        }
+    }
+}
